@@ -40,9 +40,6 @@ app.get("/", (req, res) => {
   res.send("E-Commerce API is running 🚀");
 });
 
-// server.js
-app.use("/api/auth", require("./routes/auth.js"));
-
 // Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
