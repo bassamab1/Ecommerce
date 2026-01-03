@@ -4,6 +4,8 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("../middleware/authMiddleware");
+const admin = require("../middleware/adminMiddleware");
+
 
 // -------------------- REGISTER --------------------
 router.post("/register", async (req, res) => {
@@ -97,5 +99,43 @@ router.get("/me", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// Route to update user profile
+// This is the missing piece!
+router.put("/profile", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update fields if they are provided in the request
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+
+    // If a new password is provided, hash it before saving
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      message: "Profile updated successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+module.exports = router;
 
 module.exports = router;
